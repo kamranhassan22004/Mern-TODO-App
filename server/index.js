@@ -1,22 +1,33 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+const path = require('path');
 const todoModel = require('./Models/Todo');
+
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const app = express();
 
+const allowedOrigins = (process.env.CLIENT_URLS || '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
+const port = process.env.PORT || 5000;
+
 
 app.use(cors({
-  origin: "https://mern-to-do-app-z9yf.vercel.app", 
+  origin: allowedOrigins,
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
+
 
 app.use(express.json());
 
 // 3. DATABASE CONNECTION
 
-mongoose.connect('mongodb+srv://kamranhassan20044_db_user:kamran123@cluster0.5srhfa8.mongodb.net/todos')
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("Connected to MongoDB"))
   .catch(err => console.log("MongoDB connection error:", err));
 
@@ -54,8 +65,8 @@ app.delete('/delete/:id', (req, res) => {
     .catch(err => res.status(500).json(err));
 });
 
-app.listen(5000, () => {
-  console.log("Server is running on port 5000");
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
 
 module.exports = app;
