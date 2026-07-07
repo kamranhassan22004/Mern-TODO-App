@@ -9,19 +9,30 @@ dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const app = express();
 
-const allowedOrigins = (process.env.CLIENT_URLS || '')
+const allowedOrigins = (
+  process.env.CLIENT_URLS ||
+  process.env.CLIENT_URL ||
+  "http://localhost:5173,https://mern-todo-app-dcgp.vercel.app"
+)
   .split(',')
   .map(origin => origin.trim())
   .filter(Boolean);
-const port = process.env.PORT || 5000;
 
-
-app.use(cors({
-  origin: allowedOrigins,
-  methods: ["GET", "POST", "PUT", "DELETE"],
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
-}));
+};
 
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 
 app.use(express.json());
 
